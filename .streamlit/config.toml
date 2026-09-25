@@ -1,0 +1,11 @@
+# Warm-paper theme matching homepage_hinglish_workbench.html. app.py injects the remaining CSS.
+[theme]
+base = "light"
+primaryColor = "#B34418"
+backgroundColor = "#FBF8F3"
+secondaryBackgroundColor = "#F4EFE6"
+textColor = "#1F1C19"
+borderColor = "#E5DDCF"
+font = "Plus Jakarta Sans:https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Lora:https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap, serif"
+codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap, monospace"

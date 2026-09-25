@@ -1,4 +1,4 @@
-"""Core normalization: sends Hinglish text or audio to Gemini and returns cleaned Roman + Devanagari."""
+"""Core normalization: sends code-switched text or audio to Gemini and returns cleaned Roman + native script."""
 
 import json
 import os
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import errors, types
 
-from prompts import NORMALIZE_AUDIO_PROMPT, NORMALIZE_PROMPT
+from prompts import DEFAULT_LANGUAGE, LANGUAGES, NORMALIZE_AUDIO_PROMPT, NORMALIZE_PROMPT
 
 load_dotenv()
 
@@ -99,34 +99,46 @@ def _generate_with_key(api_key: str, contents, on_retry: Optional[RetryCallback]
             time.sleep(delay)
 
 
+def _language_fields(language: str) -> dict:
+    if language not in LANGUAGES:
+        raise ValueError(f"Unsupported language {language!r}. Choose one of: {', '.join(LANGUAGES)}.")
+    return LANGUAGES[language]
+
+
 def normalize(
     text: str,
+    language: str = DEFAULT_LANGUAGE,
     on_retry: Optional[RetryCallback] = None,
     on_fallback: Optional[Callable[[], None]] = None,
 ) -> dict:
-    """Return {"cleaned": str, "devanagari": str} for the given Hinglish text.
+    """Return {"cleaned": str, "native": str} for the given code-switched text.
+
+    language is a key of prompts.LANGUAGES (e.g. "Hindi", "Tamil"); it picks the native script.
 
     on_retry(attempt, delay_seconds, using_backup_key) is called before each wait after a busy error.
     on_fallback() is called when the primary key is exhausted and the backup key takes over.
     Raises ServerBusyError if every retry fails (on both keys, when a backup is set).
     """
+    fields = _language_fields(language)
     text = text.strip()
     if not text:
-        return {"cleaned": "", "devanagari": ""}
+        return {"cleaned": "", "native": ""}
 
-    return _parse(_generate(NORMALIZE_PROMPT.format(text=text), on_retry, on_fallback))
+    return _parse(_generate(NORMALIZE_PROMPT.format(text=text, **fields), on_retry, on_fallback))
 
 
 def normalize_audio(
     audio: bytes,
     mime_type: str = "audio/wav",
+    language: str = DEFAULT_LANGUAGE,
     on_retry: Optional[RetryCallback] = None,
     on_fallback: Optional[Callable[[], None]] = None,
 ) -> dict:
-    """Same as normalize(), but for recorded Hinglish speech sent directly to Gemini as audio."""
+    """Same as normalize(), but for recorded speech sent directly to Gemini as audio."""
+    fields = _language_fields(language)
     contents = [
         types.Part.from_bytes(data=audio, mime_type=mime_type),
-        NORMALIZE_AUDIO_PROMPT.format(),
+        NORMALIZE_AUDIO_PROMPT.format(**fields),
     ]
     return _parse(_generate(contents, on_retry, on_fallback))
 
@@ -135,5 +147,5 @@ def _parse(response) -> dict:
     data = json.loads(response.text)
     return {
         "cleaned": data.get("cleaned", "").strip(),
-        "devanagari": data.get("devanagari", "").strip(),
+        "native": data.get("native", "").strip(),
     }

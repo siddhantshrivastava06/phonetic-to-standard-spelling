@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phonetic to Standard Spelling — Hinglish, Tamil & Malayalam</title>
+    <!--
+        Plain CSS, no scripts: src/app.py renders this page's style block and body with st.html
+        (which does not run JavaScript) as the landing view of the Streamlit app. It also opens
+        directly in a browser. Always light mode; there is no dark theme.
+    -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        :root { color-scheme: light; }
+        body { margin: 0; background: #FBF8F3; }
+
+        .home {
+            position: relative;
+            min-height: 100vh;
+            background: #FBF8F3;
+            color: #1F1C19;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        .home *, .home *::before, .home *::after { box-sizing: border-box; }
+        .home ::selection { background: rgba(179, 68, 24, .2); color: #933510; }
+
+        /* Decorative watermark glyphs: a fixed layer behind everything, never clickable. */
+        .home-glyphs {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            user-select: none;
+            overflow: hidden;
+        }
+        .home-glyphs span {
+            position: absolute;
+            font-family: 'Lora', serif;
+            color: #E2D9CD;
+            line-height: 1;
+        }
+
+        /* All real content sits on a layer above the glyphs. */
+        .home-wrap {
+            position: relative;
+            z-index: 10;
+            max-width: 72rem;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .home-header {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #E5DDCF;
+        }
+        .home-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: .05em;
+        }
+        .home-tag {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #5C564E;
+            background: #F4EFE6;
+            border: 1px solid #E5DDCF;
+            border-radius: 4px;
+            padding: .125rem .5rem;
+        }
+
+        .home-main { margin: auto 0; padding: 4rem 0; }
+
+        .home-hero {
+            position: relative;
+            z-index: 10;
+            border: 1px solid #E5DDCF;
+            border-radius: 1rem;
+            padding: 3.5rem;
+            background-color: #FBF8F3;
+            background-image: radial-gradient(#D6CBC0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .home-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: .875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #B34418;
+            margin: 0 0 1rem;
+        }
+        .home-title {
+            font-family: 'Lora', serif;
+            font-weight: 700;
+            font-size: clamp(2.25rem, 6vw, 4.5rem);
+            line-height: 1.1;
+            letter-spacing: -.025em;
+            margin: 0 0 1.5rem;
+            max-width: 56rem;
+        }
+        .home-title span { color: #B34418; font-style: italic; font-weight: 400; }
+        .home-sub {
+            font-family: 'Lora', serif;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: #5C564E;
+            max-width: 42rem;
+            margin: 0 0 2rem;
+        }
+        .home-sub strong { color: #1F1C19; font-weight: 600; }
+        .home-divider { width: 100%; max-width: 28rem; height: 1px; background: rgba(179, 68, 24, .3); margin-bottom: 2.5rem; }
+
+        .home-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: .75rem;
+            padding: 1rem 2rem;
+            background: #B34418;
+            color: #FBF8F3 !important;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1.125rem;
+            text-decoration: none !important;
+            border-radius: .5rem;
+            box-shadow: 0 4px 12px rgba(179, 68, 24, .25);
+            transition: background .2s;
+        }
+        .home-cta:hover { background: #933510; }
+        /* A text arrow, not an SVG: st.html strips inline SVG. */
+        .home-arrow { font-size: 1.25rem; line-height: 1; transition: transform .2s; }
+        .home-cta:hover .home-arrow { transform: translateX(4px); }
+
+        .home-features { margin-top: 5rem; }
+        .home-features-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E5DDCF;
+        }
+        .home-features-head h3 { font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 600; margin: 0; }
+        .home-features-head span {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: #8C8479;
+        }
+        .home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .home-card {
+            position: relative;
+            z-index: 10;
+            background: #F4EFE6;
+            border: 1px solid #E5DDCF;
+            border-radius: .75rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px -5px rgba(31, 28, 25, .05), 0 2px 6px -1px rgba(31, 28, 25, .03);
+            transition: border-color .2s;
+        }
+        .home-card:hover { border-color: rgba(179, 68, 24, .4); }
+        .home-num {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: .5rem;
+            background: rgba(179, 68, 24, .1);
+            color: #B34418;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 700;
+            font-size: .875rem;
+            margin-bottom: 1rem;
+        }
+        .home-card h4 { font-family: 'Lora', serif; font-size: 1.25rem; font-weight: 700; margin: 0 0 .5rem; }
+        .home-card p { font-size: .875rem; line-height: 1.6; color: #5C564E; margin: 0; }
+        .home-card-foot {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(229, 221, 207, .6);
+            display: flex;
+            justify-content: space-between;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: .75rem;
+            color: #8C8479;
+        }
+        .home-card-foot b { color: #B34418; font-weight: 400; }
+
+        @media (max-width: 768px) {
+            .home-wrap { padding: 1.5rem 1rem; }
+            .home-hero { padding: 1.5rem; }
+            .home-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="home">
+
+    <!-- Ambient Indic watermark glyphs (Hindi/Devanagari, Tamil, Malayalam), behind all content -->
+    <div class="home-glyphs" aria-hidden="true">
+        <span style="top: 4rem; left: 3rem; font-size: 8rem; font-weight: 700; opacity: .8;">अ</span>
+        <span style="top: 11rem; left: 4rem; font-size: 1.25rem; font-family: 'IBM Plex Mono', monospace; color: rgba(179, 68, 24, .4);">ab</span>
+        <span style="top: 36%; left: -1rem; font-size: 4.5rem; opacity: .5;">क</span>
+        <span style="top: 60%; left: 1rem; font-size: 2.5rem; opacity: .6;">தமிழ்</span>
+        <span style="bottom: 5rem; left: 2.5rem; font-size: 2.5rem; opacity: .5;">മലയാളം</span>
+        <span style="top: 5rem; right: 2.5rem; font-size: 8rem; opacity: .3;">ந</span>
+        <span style="bottom: 33%; right: 3rem; font-size: 3.75rem; font-family: 'IBM Plex Mono', monospace; color: rgba(179, 68, 24, .3);">hai</span>
+    </div>
+
+    <div class="home-wrap">
+
+        <header class="home-header">
+            <span class="home-brand">LANGUAGE TOOLS</span>
+            <span class="home-tag">Phonetic Intelligence</span>
+        </header>
+
+        <main class="home-main">
+            <div class="home-hero">
+                <p class="home-eyebrow">AI / Machine Learning · Language Tools</p>
+
+                <h1 class="home-title">Phonetic to <br><span>Standard Spelling</span></h1>
+
+                <p class="home-sub">
+                    A language tool for code-switching and spelling by ear in
+                    <strong>Hinglish, Tamil, and Malayalam</strong> written in the English alphabet.
+                </p>
+
+                <div class="home-divider"></div>
+
+                <!-- Opens the Streamlit workbench. src/app.py rewrites this to a relative link when it serves this page. -->
+                <a class="home-cta" href="http://localhost:8501/?page=app" target="_self">
+                    <span>Show me the app</span>
+                    <span class="home-arrow" aria-hidden="true">→</span>
+                </a>
+            </div>
+
+            <section class="home-features">
+                <div class="home-features-head">
+                    <h3>Core Capabilities</h3>
+                    <span>Multi-Language Engine</span>
+                </div>
+
+                <div class="home-grid">
+                    <div class="home-card">
+                        <div>
+                            <div class="home-num">01</div>
+                            <h4>Phonetic Normalizer</h4>
+                            <p>Automatically corrects loose phonetic slang written in the English alphabet into standardized spelling across Hinglish, Tamil, and Malayalam.</p>
+                        </div>
+                        <div class="home-card-foot"><span>Phonetic Engine</span><b>→</b></div>
+                    </div>
+
+                    <div class="home-card">
+                        <div>
+                            <div class="home-num">02</div>
+                            <h4>Code-Switching Parser</h4>
+                            <p>Handles multi-language syntax blended mid-sentence in the English alphabet, mapping native constructs alongside vernacular scripts.</p>
+                        </div>
+                        <div class="home-card-foot"><span>Bilingual Transformer</span><b>→</b></div>
+                    </div>
+
+                    <div class="home-card">
+                        <div>
+                            <div class="home-num">03</div>
+                            <h4>Voice &amp; Speech Support</h4>
+                            <p>Dictate naturally in spoken Hinglish, Tamil, or Malayalam and receive clean text formatted in the English alphabet and native scripts.</p>
+                        </div>
+                        <div class="home-card-foot"><span>Audio Transcriber</span><b>→</b></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+    </div>
+</div>
+</body>
+</html>
