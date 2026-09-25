@@ -1,4 +1,4 @@
-"""Core normalization: sends Hinglish text to Gemini and returns cleaned Roman + Devanagari."""
+"""Core normalization: sends Hinglish text or audio to Gemini and returns cleaned Roman + Devanagari."""
 
 import json
 import os
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import errors, types
 
-from prompts import NORMALIZE_PROMPT
+from prompts import NORMALIZE_AUDIO_PROMPT, NORMALIZE_PROMPT
 
 load_dotenv()
 
@@ -45,13 +45,13 @@ def _is_retryable(e: errors.APIError) -> bool:
     )
 
 
-def _generate(prompt: str, on_retry: Optional[Callable[[int, int], None]]):
+def _generate(contents, on_retry: Optional[Callable[[int, int], None]]):
     """Call Gemini, retrying on rate-limit / overload errors per RETRY_DELAYS."""
     for attempt, delay in enumerate([*RETRY_DELAYS, None], start=1):
         try:
             return _get_client().models.generate_content(
                 model=os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
-                contents=prompt,
+                contents=contents,
                 config=types.GenerateContentConfig(
                     temperature=0,
                     response_mime_type="application/json",
@@ -79,8 +79,23 @@ def normalize(text: str, on_retry: Optional[Callable[[int, int], None]] = None) 
     if not text:
         return {"cleaned": "", "devanagari": ""}
 
-    response = _generate(NORMALIZE_PROMPT.format(text=text), on_retry)
+    return _parse(_generate(NORMALIZE_PROMPT.format(text=text), on_retry))
 
+
+def normalize_audio(
+    audio: bytes,
+    mime_type: str = "audio/wav",
+    on_retry: Optional[Callable[[int, int], None]] = None,
+) -> dict:
+    """Same as normalize(), but for recorded Hinglish speech sent directly to Gemini as audio."""
+    contents = [
+        types.Part.from_bytes(data=audio, mime_type=mime_type),
+        NORMALIZE_AUDIO_PROMPT.format(),
+    ]
+    return _parse(_generate(contents, on_retry))
+
+
+def _parse(response) -> dict:
     data = json.loads(response.text)
     return {
         "cleaned": data.get("cleaned", "").strip(),
