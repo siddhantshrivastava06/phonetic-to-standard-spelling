@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from normalize import normalize
+from normalize import ServerBusyError, normalize
 
 st.set_page_config(page_title="Phonetic to Standard Spelling", page_icon="🔤")
 
@@ -15,12 +15,22 @@ if st.button("Normalize", type="primary"):
     if not text.strip():
         st.warning("Enter some text first.")
     else:
+        retry_notice = st.empty()
+
+        def show_retry(attempt: int, delay: int) -> None:
+            retry_notice.info(f"Server busy, retrying in {delay}s... (retry {attempt})")
+
         with st.spinner("Normalizing..."):
             try:
-                result = normalize(text)
+                result = normalize(text, on_retry=show_retry)
+            except ServerBusyError as e:
+                retry_notice.empty()
+                st.error(str(e))
             except Exception as e:
+                retry_notice.empty()
                 st.error(f"Something went wrong: {e}")
             else:
+                retry_notice.empty()
                 st.subheader("Cleaned (Roman)")
                 st.code(result["cleaned"], language=None)
                 st.subheader("Devanagari")
