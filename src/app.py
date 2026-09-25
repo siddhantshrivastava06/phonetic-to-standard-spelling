@@ -7,7 +7,7 @@ from normalize import ServerBusyError, normalize, normalize_audio
 st.set_page_config(page_title="Phonetic to Standard Spelling", page_icon="🔤")
 
 st.title("Phonetic to Standard Spelling")
-st.caption("Type or speak messy Hinglish and get standardized Roman spelling plus Devanagari.")
+st.caption("Type or speak messy Hinglish and get text written in the English alphabet plus Devanagari (Hindi).")
 
 # Set by the "Try again" button (via on_click, so it survives the rerun that button triggers).
 retry_requested = st.session_state.pop("retry_requested", False)
@@ -40,17 +40,20 @@ def run_and_show(fn, *args) -> None:
             st.error(f"Something went wrong: {e}")
         else:
             retry_notice.empty()
-            st.subheader("Cleaned (Roman)")
+            st.subheader("Cleaned text written in the English alphabet")
             st.code(result["cleaned"], language=None)
-            st.subheader("Devanagari")
+            st.subheader("Devanagari (Hindi)")
             st.code(result["devanagari"], language=None)
 
 
 mode = st.radio("Input method", ["Text", "Voice"], horizontal=True)
 
 if mode == "Text":
-    text = st.text_area("Hinglish input", placeholder="kal raat ko bohot maza aya yaar", height=120)
-    if st.button("Normalize", type="primary") or retry_requested:
+    # A form makes Ctrl+Enter (Cmd+Enter on Mac) in the text area submit, same as clicking Normalize.
+    with st.form("text_form", border=False):
+        text = st.text_area("Hinglish input", placeholder="kal raat ko bohot maza aya yaar", height=120)
+        submitted = st.form_submit_button("Normalize", type="primary")
+    if submitted or retry_requested:
         if not text.strip():
             st.warning("Enter some text first.")
         else:
