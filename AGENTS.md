@@ -12,7 +12,7 @@ A hackathon MVP: a Streamlit app that normalizes Hinglish (typed phonetically, o
 - `src/normalize.py`: the only place that calls Gemini.
   - `normalize(text)` and `normalize_audio(audio_bytes, mime_type)` both return `{"cleaned": str, "devanagari": str}`.
   - Audio is sent to Gemini directly as an inline audio part; there is no separate speech-to-text step.
-  - Both go through `_generate()`, which retries rate-limit / overload errors (5s, 10s, 20s) and raises `ServerBusyError` when they run out.
+  - Both go through `_generate()`, which retries rate-limit / overload errors (4 retries, waiting 5s, 10s, 15s, 15s; waits are capped at 15s) and raises `ServerBusyError` when they run out. The UI then shows a **Try again** button.
 - `src/prompts.py`: `NORMALIZE_PROMPT` (text) and `NORMALIZE_AUDIO_PROMPT` (voice). They share one set of rules (`_RULES`) so both inputs produce the same output. Tune output quality here, not in code.
 - `requirements.txt`: runtime dependencies (`streamlit>=1.39` for `st.audio_input`, `google-genai`, `python-dotenv`).
 - `.env.example`: config template. The real `.env` is gitignored and must never be committed.

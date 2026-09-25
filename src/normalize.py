@@ -15,8 +15,11 @@ load_dotenv()
 
 DEFAULT_MODEL = "gemini-3.8-flash"
 
-# Retry schedule for rate-limit / overload errors: wait 5s, 10s, 20s between attempts.
-RETRY_DELAYS = [5, 10, 20]
+# Retry schedule for rate-limit / overload errors: 4 retries after the first call,
+# waiting 5s and doubling, capped at 15s -> 5s, 10s, 15s, 15s.
+MAX_RETRIES = 4
+MAX_DELAY = 15
+RETRY_DELAYS = [min(5 * 2**i, MAX_DELAY) for i in range(MAX_RETRIES)]
 _RETRYABLE_CODES = {429, 503}
 _RETRYABLE_STATUSES = {"RESOURCE_EXHAUSTED", "UNAVAILABLE"}
 
