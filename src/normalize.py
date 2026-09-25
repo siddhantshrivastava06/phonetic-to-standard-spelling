@@ -11,7 +11,7 @@ from prompts import NORMALIZE_PROMPT
 
 load_dotenv()
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"
 
 _client = None
 
