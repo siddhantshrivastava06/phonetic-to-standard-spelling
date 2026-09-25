@@ -21,12 +21,16 @@ def run_and_show(fn, *args) -> None:
     """Call a normalize function, showing retry notices and errors, then render the result."""
     retry_notice = st.empty()
 
-    def show_retry(attempt: int, delay: int) -> None:
-        retry_notice.info(f"Server busy, retrying in {delay}s... (retry {attempt})")
+    def show_retry(attempt: int, delay: int, backup: bool) -> None:
+        key = "backup key" if backup else "server"
+        retry_notice.info(f"{key.capitalize()} busy, retrying in {delay}s... (retry {attempt})")
+
+    def show_fallback() -> None:
+        retry_notice.warning("Primary key still busy. Trying backup key...")
 
     with st.spinner("Normalizing..."):
         try:
-            result = fn(*args, on_retry=show_retry)
+            result = fn(*args, on_retry=show_retry, on_fallback=show_fallback)
         except ServerBusyError as e:
             retry_notice.empty()
             st.error(str(e))

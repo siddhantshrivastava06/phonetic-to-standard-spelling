@@ -40,7 +40,10 @@ Then open the URL Streamlit prints (usually http://localhost:8501).
 | Variable | Required | Default |
 |---|---|---|
 | `GEMINI_API_KEY` | yes | — |
-| `GEMINI_MODEL` | no | `gemini-3.8-flash` |
+| `GEMINI_API_KEY_2` | no | — (backup key; see below) |
+| `GEMINI_MODEL` | no | `gemini-3.5-flash-lite` |
+
+If Gemini is busy (rate limited or overloaded), the app retries 4 times, waiting 5s, 10s, 15s and 15s. If it's still busy and `GEMINI_API_KEY_2` is set, it runs the same retries once more with that key, showing "Trying backup key..." in the UI. If everything fails, a **Try again** button lets you resubmit.
 
 ## Project structure
 
