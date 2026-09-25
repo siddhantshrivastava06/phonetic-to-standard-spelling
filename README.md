@@ -20,8 +20,6 @@ pip install -r requirements.txt
 cp .env.example .env   # then put your Gemini API key in .env
 ```
 
-Get an API key at https://aistudio.google.com/apikey.
-
 ## Run
 
 ```bash
@@ -35,7 +33,7 @@ Then open the URL Streamlit prints (usually http://localhost:8501).
 | Variable | Required | Default |
 |---|---|---|
 | `GEMINI_API_KEY` | yes | — |
-| `GEMINI_MODEL` | no | `gemini-2.5-flash` |
+| `GEMINI_MODEL` | no | `gemini-3.8-flash` |
 
 ## Project structure
 
